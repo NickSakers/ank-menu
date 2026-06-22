@@ -11,10 +11,8 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 .bar .fill{height:100%;width:0;background:var(--gold);transition:width .3s}
 .bar .pct{font-size:12px;margin-top:4px;opacity:.95}
 .wrap{max-width:680px;margin:0 auto;padding:14px}
-.intro{background:#efe9d6;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
-.intro b{color:var(--moss)}
 .sec{margin:0 0 10px}
-.sec>h2{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);margin:18px 0 6px}
+.sec>h2{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);margin:16px 0 6px}
 .sec>.help{font-size:13px;color:#6b7363;margin:0 0 10px;font-style:italic}
 .item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;position:relative}
 .item.done{border-color:var(--good);box-shadow:inset 4px 0 0 var(--good)}
@@ -22,7 +20,7 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 .item .opt{font-weight:400;color:#9aa08f;font-size:12px}
 .item .tick{position:absolute;top:12px;right:12px;font-size:18px;color:#cfcab8}
 .item.done .tick{color:var(--good)}
-textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid #cdbf9b;border-radius:9px;background:#fffdf7;font-family:inherit;color:var(--ink);min-height:70px;resize:vertical}
+textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid #cdbf9b;border-radius:9px;background:#fffdf7;font-family:inherit;color:var(--ink);min-height:64px;resize:vertical}
 textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 .send{position:sticky;bottom:0;background:linear-gradient(transparent,var(--cream) 30%);padding:14px 0 18px;margin-top:8px}
 .btn{display:block;width:100%;font-size:17px;font-weight:700;padding:15px;border:none;border-radius:12px;background:var(--rust);color:#fff;letter-spacing:.5px}
@@ -31,14 +29,13 @@ textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 .fallbacks{display:none;margin-top:10px}
 .fallbacks a,.fallbacks button{display:inline-block;margin:4px 6px 0 0;font-size:14px;padding:9px 12px;border-radius:9px;border:1px solid var(--moss);color:var(--moss);background:#fff;text-decoration:none}
 .note{font-size:11.5px;color:#9a7b2f;text-align:center;margin-top:8px}
-.banner{background:#dff3df;border:1px solid var(--good);color:#235c2c;border-radius:10px;padding:10px;font-size:14px;text-align:center;display:none;margin-bottom:12px}
+.banner{background:#dff3df;border:1px solid var(--good);color:#235c2c;border-radius:10px;padding:10px;font-size:14px;text-align:center;display:none;margin:12px 0}
 .banner.show{display:block}
 </style></head>
 <body>
-<div class="bar"><h1>🌿 Awa Na Kava — Recipes</h1><div class="meter"><div class="fill" id="fill"></div></div><div class="pct" id="pct">0 of 6 done</div></div>
+<div class="bar"><h1>🌿 Awa Na Kava — Recipes</h1><div class="meter"><div class="fill" id="fill"></div></div><div class="pct" id="pct">0 of 8 done</div></div>
 <div class="wrap">
-<div class="banner" id="tree">🎄 All green — recipes complete! Hit <b>Send to Nick</b> below.</div>
-<div class="intro">Hey Kyle — you're the only one who knows how these are made, so this is all about getting the recipes down. For each one, write <b>what goes in and how much</b> — use whatever measurements you actually use (grams, oz, scoops, pumps, gallons). For the batch brews, also tell me <b>how much one batch makes</b>. It <b>saves automatically</b> as you type, so stop and come back anytime. When it's all green, tap <b>Send to Nick</b>.</div>
+<div class="banner" id="tree">🎄 Core recipes complete! Hit <b>Send to Nick</b> below (fill any extras first if you can).</div>
 <div id="form"></div>
 <div class="send">
 <button class="btn" id="sendBtn" disabled>Send to Nick</button>
@@ -46,34 +43,55 @@ textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 <div class="fallbacks" id="fb">
 <a id="smsL" href="#">Text it</a><a id="mailL" href="#">Email it</a><button id="copyL">Copy</button>
 </div>
-<div class="note">Saved on this phone automatically. Nothing is sent until you tap a button.</div>
+<div class="note">Saves on this phone as you type. Nothing sends until you tap a button. Use whatever units you actually use.</div>
 </div>
 </div>
 <script>
 const CFG=[
- {sec:"1 · Base brews — how you make a batch",help:"For each base you brew in batches, tell me what goes into one full batch and how much it makes (you mentioned ~5-gallon batches).",fields:[
-  {id:"batch_fiji",req:1,label:"Fiji Kava — batch recipe & yield",ph:"e.g. 5-gal batch: 2 kg Fiji root + water, strained — makes about __ 16oz drinks"},
-  {id:"batch_premium",label:"Premium Kava (Tonga/Vanuatu) — batch recipe & yield",ph:"same idea — or just note if it's the same method as Fiji",opt:1},
-  {id:"batch_kratea",req:1,label:"KraTea (kratom tea) — batch recipe & yield",ph:"e.g. __ batch: __ leaf/powder (or __ Liquid Gold extract) + water — makes about __ drinks"},
+ {sec:"1 · Base brews — how you make a batch",help:"What goes into one full batch, and how much it makes (you mentioned ~5-gallon batches).",fields:[
+  {id:"batch_fiji",req:1,label:"Fiji Kava — batch recipe & yield",ph:"e.g. 5-gal batch: 2 kg Fiji root + water, strained — makes ~__ 16oz drinks"},
+  {id:"batch_premium",label:"Premium Kava (Tonga/Vanuatu) — batch & yield",ph:"or note if same method as Fiji",opt:1},
+  {id:"batch_kratea",req:1,label:"KraTea — batch recipe & yield",ph:"e.g. __ leaf/powder (or __ Liquid Gold extract) + water — makes ~__ drinks"},
  ]},
- {sec:"2 · Drink recipes",help:"Describe each recipe as accurately as you can, with amounts, so we can calculate the cost of each and price it for proper margins.",fields:[
-  {id:"r_zombie",req:1,label:"Zombie",ph:"what goes in + how much (e.g. 16oz kratea base + 2 extract shots + 2 pumps __)"},
+ {sec:"2 · Kava specialty drinks",help:"What goes in each + how much.",fields:[
+  {id:"r_choc",req:1,label:"Chocolate Thunder"},
+  {id:"r_kavax",req:1,label:"Kava-X Drank"},
+  {id:"r_hothoney",label:"Hot Honey Kava",opt:1},
+  {id:"r_sok_classic",label:"Sex on Kava — Classic",opt:1},
+  {id:"r_sok_dark",label:"Sex on Kava — After Dark",opt:1},
+  {id:"r_pudding",label:"Kava Pudding Shot",opt:1},
+  {id:"r_kavashot",label:"Extract Kava Shot",opt:1},
+ ]},
+ {sec:"3 · Kratom specialty drinks",help:"What goes in each + how much.",fields:[
+  {id:"r_zombie",req:1,label:"Zombie",ph:"e.g. 16oz kratea base + 2 extract shots + 2 pumps __"},
   {id:"r_voodoo",req:1,label:"Voodoo"},
   {id:"r_godzilla",req:1,label:"Godzilla"},
   {id:"r_kmyx",req:1,label:"K-MyX"},
-  {id:"r_choc",label:"Chocolate Thunder",opt:1},
-  {id:"r_kavax",label:"Kava-X Drank",opt:1},
-  {id:"r_hothoney",label:"Hot Honey Kava",opt:1},
-  {id:"r_pudding",label:"Kava Pudding Shot",opt:1},
-  {id:"r_sok_classic",label:"Sex on Kava — Classic",opt:1},
-  {id:"r_sok_dark",label:"Sex on Kava — After Dark",opt:1},
-  {id:"r_kratsoda",label:"Krat Soda",opt:1},
-  {id:"r_bluelotus",label:"Blue Lotus",opt:1},
+  {id:"r_honeylav",label:"Honey Lavender Limeade",opt:1},
+  {id:"r_kratshot",label:"Flavored Extract Shot (kratom)",opt:1},
+ ]},
+ {sec:"4 · Lattes & energy drinks",help:"Recipe + amounts. (Some of these use ingredients I don't have prices for yet — give me the recipe anyway and I'll source the costs.)",fields:[
+  {id:"r_javakava",label:"Java Kava",opt:1},
+  {id:"r_matcha",label:"Matcha Latte",opt:1},
+  {id:"r_goldenmilk",label:"Golden Milk Latte",opt:1},
+  {id:"r_matchalem",label:"Matcha Lemonade",opt:1},
+  {id:"r_macasuma",label:"Maca Suma",opt:1},
+  {id:"r_montezuma",label:"Montezuma",opt:1},
+  {id:"r_yerba",label:"Yerba Mate",opt:1},
+ ]},
+ {sec:"5 · Smoothies",help:"Fruit, base, and amounts.",fields:[
+  {id:"r_smooth_sb",label:"Strawberry Banana Smoothie",opt:1},
+  {id:"r_smooth_pb",label:"Peanut Butter Banana Smoothie",opt:1},
+ ]},
+ {sec:"6 · Boosts & add-ons",help:"How much goes into ONE boost/shot.",fields:[
+  {id:"r_instantboost",label:"Instant Kava Boost",ph:"e.g. __ grams instant kava",opt:1},
+  {id:"r_extractboost",label:"Extract Kava Boost",ph:"e.g. __ oz/ml kava extract",opt:1},
+  {id:"r_kratboost",label:"Kratom Extract Boost",ph:"e.g. __ ml Liquid Gold extract",opt:1},
  ]},
 ];
-const KEY="ank_recipes_v2";
+const KEY="ank_recipes_v3";
 let data=JSON.parse(localStorage.getItem(KEY)||"{}");
-const REQ=["batch_fiji","batch_kratea","r_zombie","r_voodoo","r_godzilla","r_kmyx"];
+const REQ=["batch_fiji","batch_kratea","r_choc","r_kavax","r_zombie","r_voodoo","r_godzilla","r_kmyx"];
 const form=document.getElementById("form");
 function save(){localStorage.setItem(KEY,JSON.stringify(data));}
 function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
@@ -99,10 +117,11 @@ function update(){
  document.getElementById("tree").classList.toggle("show",complete);
 }
 function summary(){
- let t="🌿 AWA NA KAVA — Recipes from Kyle\n\nBASE BREWS\n";
- [["Fiji Kava batch","batch_fiji"],["Premium Kava batch","batch_premium"],["KraTea batch","batch_kratea"]].forEach(([n,id])=>{if(filled(id))t+="• "+n+": "+data[id]+"\n";});
- t+="\nDRINK RECIPES\n";
- [["Zombie","r_zombie"],["Voodoo","r_voodoo"],["Godzilla","r_godzilla"],["K-MyX","r_kmyx"],["Chocolate Thunder","r_choc"],["Kava-X","r_kavax"],["Hot Honey Kava","r_hothoney"],["Kava Pudding Shot","r_pudding"],["Sex on Kava — Classic","r_sok_classic"],["Sex on Kava — After Dark","r_sok_dark"],["Krat Soda","r_kratsoda"],["Blue Lotus","r_bluelotus"]].forEach(([n,id])=>{if(filled(id))t+="• "+n+": "+data[id]+"\n";});
+ let t="🌿 AWA NA KAVA — Recipes from Kyle\n";
+ CFG.forEach(s=>{
+  const lines=s.fields.filter(f=>filled(f.id)).map(f=>"• "+f.label.replace(/ —.*$/,'').replace(/ \(.*$/,'')+": "+data[f.id]);
+  if(lines.length)t+="\n"+s.sec.replace(/^\d+ · /,'').toUpperCase()+"\n"+lines.join("\n")+"\n";
+ });
  t+="\n---DATA (for Claude)---\n"+JSON.stringify(data);
  return t;
 }
