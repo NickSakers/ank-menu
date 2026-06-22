@@ -20,8 +20,11 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 .item .opt{font-weight:400;color:#9aa08f;font-size:12px}
 .item .tick{position:absolute;top:12px;right:12px;font-size:18px;color:#cfcab8}
 .item.done .tick{color:var(--good)}
-textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid #cdbf9b;border-radius:9px;background:#fffdf7;font-family:inherit;color:var(--ink);min-height:64px;resize:vertical}
-textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.item .rm{position:absolute;top:8px;right:8px;border:none;background:none;font-size:22px;line-height:1;color:#c39;width:auto;padding:0 4px}
+input[type=text],textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid #cdbf9b;border-radius:9px;background:#fffdf7;font-family:inherit;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+textarea{min-height:64px;resize:vertical}
+.cname{font-weight:600;margin-bottom:8px}
 .send{position:sticky;bottom:0;background:linear-gradient(transparent,var(--cream) 30%);padding:14px 0 18px;margin-top:8px}
 .btn{display:block;width:100%;font-size:17px;font-weight:700;padding:15px;border:none;border-radius:12px;background:var(--rust);color:#fff;letter-spacing:.5px}
 .btn:disabled{background:#bdb39a;color:#f2ede0}
@@ -35,7 +38,7 @@ textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 <body>
 <div class="bar"><h1>🌿 Awa Na Kava — Recipes</h1><div class="meter"><div class="fill" id="fill"></div></div><div class="pct" id="pct">0 of 8 done</div></div>
 <div class="wrap">
-<div class="banner" id="tree">🎄 Core recipes complete! Hit <b>Send to Nick</b> below (fill any extras first if you can).</div>
+<div class="banner" id="tree">🎄 Core recipes done — add any extras below, then hit <b>Send to Nick</b>.</div>
 <div id="form"></div>
 <div class="send">
 <button class="btn" id="sendBtn" disabled>Send to Nick</button>
@@ -48,7 +51,7 @@ textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
 </div>
 <script>
 const CFG=[
- {sec:"1 · Base brews — how you make a batch",help:"What goes into one full batch, and how much it makes (you mentioned ~5-gallon batches).",fields:[
+ {sec:"1 · Base brews — how you make a batch",help:"What goes into one full batch, and how much it makes.",fields:[
   {id:"batch_fiji",req:1,label:"Fiji Kava — batch recipe & yield",ph:"e.g. 5-gal batch: 2 kg Fiji root + water, strained — makes ~__ 16oz drinks"},
   {id:"batch_premium",label:"Premium Kava (Tonga/Vanuatu) — batch & yield",ph:"or note if same method as Fiji",opt:1},
   {id:"batch_kratea",req:1,label:"KraTea — batch recipe & yield",ph:"e.g. __ leaf/powder (or __ Liquid Gold extract) + water — makes ~__ drinks"},
@@ -70,16 +73,15 @@ const CFG=[
   {id:"r_honeylav",label:"Honey Lavender Limeade",opt:1},
   {id:"r_kratshot",label:"Flavored Extract Shot (kratom)",opt:1},
  ]},
- {sec:"4 · Lattes & energy drinks",help:"Recipe + amounts. (Some of these use ingredients I don't have prices for yet — give me the recipe anyway and I'll source the costs.)",fields:[
+ {sec:"4 · Lattes & energy drinks",help:"Recipe + amounts.",fields:[
   {id:"r_javakava",label:"Java Kava",opt:1},
   {id:"r_matcha",label:"Matcha Latte",opt:1},
   {id:"r_goldenmilk",label:"Golden Milk Latte",opt:1},
   {id:"r_matchalem",label:"Matcha Lemonade",opt:1},
   {id:"r_macasuma",label:"Maca Suma",opt:1},
-  {id:"r_montezuma",label:"Montezuma",opt:1},
   {id:"r_yerba",label:"Yerba Mate",opt:1},
  ]},
- {sec:"5 · Smoothies",help:"Fruit, base, and amounts.",fields:[
+ {sec:"5 · Smoothies",help:"Fruit, base, amounts. Add any others in the 'Anything else' section below.",fields:[
   {id:"r_smooth_sb",label:"Strawberry Banana Smoothie",opt:1},
   {id:"r_smooth_pb",label:"Peanut Butter Banana Smoothie",opt:1},
  ]},
@@ -89,8 +91,9 @@ const CFG=[
   {id:"r_kratboost",label:"Kratom Extract Boost",ph:"e.g. __ ml Liquid Gold extract",opt:1},
  ]},
 ];
-const KEY="ank_recipes_v3";
+const KEY="ank_recipes_v4";
 let data=JSON.parse(localStorage.getItem(KEY)||"{}");
+if(!Array.isArray(data.custom))data.custom=[];
 const REQ=["batch_fiji","batch_kratea","r_choc","r_kavax","r_zombie","r_voodoo","r_godzilla","r_kmyx"];
 const form=document.getElementById("form");
 function save(){localStorage.setItem(KEY,JSON.stringify(data));}
@@ -107,6 +110,23 @@ CFG.forEach(s=>{
  });
  form.appendChild(sec);
 });
+const cWrap=el("div","sec");cWrap.appendChild(el("h2",null,"7 · Anything else you make"));
+cWrap.appendChild(el("div","help","Add any other drink — regular or seasonal. Add as many as you want."));
+const cList=el("div");cWrap.appendChild(cList);
+const addBtn=el("button","btn alt","+ Add a drink");addBtn.onclick=()=>{data.custom.push({n:"",r:""});save();renderCustom();};
+cWrap.appendChild(addBtn);form.appendChild(cWrap);
+function renderCustom(){
+ cList.innerHTML="";
+ data.custom.forEach((c,i)=>{
+  const card=el("div","item");
+  const rm=el("button","rm","×");rm.onclick=()=>{data.custom.splice(i,1);save();renderCustom();};
+  card.appendChild(rm);
+  const nm=el("input","cname");nm.type="text";nm.placeholder="Drink name";nm.value=c.n||"";nm.oninput=()=>{data.custom[i].n=nm.value;save();};
+  const ta=el("textarea");ta.placeholder="Recipe — what goes in + how much";ta.value=c.r||"";ta.oninput=()=>{data.custom[i].r=ta.value;save();};
+  card.appendChild(nm);card.appendChild(ta);cList.appendChild(card);
+ });
+}
+renderCustom();
 function filled(id){const v=data[id];return v!=null&&String(v).trim()!=="";}
 function update(){
  let done=0;REQ.forEach(id=>{const ok=filled(id);if(ok)done++;const c=document.getElementById("card_"+id);if(c)c.classList.toggle("done",ok);});
@@ -122,6 +142,8 @@ function summary(){
   const lines=s.fields.filter(f=>filled(f.id)).map(f=>"• "+f.label.replace(/ —.*$/,'').replace(/ \(.*$/,'')+": "+data[f.id]);
   if(lines.length)t+="\n"+s.sec.replace(/^\d+ · /,'').toUpperCase()+"\n"+lines.join("\n")+"\n";
  });
+ const cl=(data.custom||[]).filter(c=>(c.n||c.r)).map(c=>"• "+(c.n||"(unnamed)")+": "+(c.r||""));
+ if(cl.length)t+="\nADDED BY KYLE\n"+cl.join("\n")+"\n";
  t+="\n---DATA (for Claude)---\n"+JSON.stringify(data);
  return t;
 }
