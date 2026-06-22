@@ -1,0 +1,162 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Awa Na Kava — Menu Input</title>
+<style>
+:root{--ink:#23301f;--moss:#3f5d3a;--gold:#b3892f;--cream:#f7f3e8;--card:#fff;--line:#e0d6bd;--rust:#8a4b2b;--good:#3f8f4a;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.4}
+.bar{position:sticky;top:0;z-index:9;background:var(--moss);color:#fff;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.bar h1{margin:0;font-size:17px;letter-spacing:1px}
+.bar .meter{height:9px;background:rgba(255,255,255,.25);border-radius:6px;margin-top:8px;overflow:hidden}
+.bar .fill{height:100%;width:0;background:var(--gold);transition:width .3s}
+.bar .pct{font-size:12px;margin-top:4px;opacity:.95}
+.wrap{max-width:680px;margin:0 auto;padding:14px}
+.intro{background:#efe9d6;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.intro b{color:var(--moss)}
+.sec{margin:0 0 10px}
+.sec>h2{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);margin:18px 0 6px}
+.sec>.help{font-size:13px;color:#6b7363;margin:0 0 10px;font-style:italic}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;position:relative}
+.item.done{border-color:var(--good);box-shadow:inset 4px 0 0 var(--good)}
+.item label{display:block;font-size:14px;font-weight:600;margin-bottom:7px;padding-right:26px}
+.item .opt{font-weight:400;color:#9aa08f;font-size:12px}
+.item .tick{position:absolute;top:12px;right:12px;font-size:18px;color:#cfcab8}
+.item.done .tick{color:var(--good)}
+.row{display:flex;gap:8px;align-items:center}
+input[type=number],input[type=text],textarea{width:100%;font-size:16px;padding:11px 12px;border:1px solid #cdbf9b;border-radius:9px;background:#fffdf7;font-family:inherit;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+textarea{min-height:62px;resize:vertical}
+.unit{font-size:13px;color:#6b7363;white-space:nowrap}
+.pricegrid{display:grid;grid-template-columns:1fr auto;gap:8px 10px;align-items:center}
+.pricegrid .nm{font-size:14px}
+.pricegrid .pin{display:flex;align-items:center;gap:4px}
+.pricegrid input{width:80px;text-align:right}
+.chk{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.chk input{width:22px;height:22px;margin-top:1px;flex:none}
+.send{position:sticky;bottom:0;background:linear-gradient(transparent,var(--cream) 30%);padding:14px 0 18px;margin-top:8px}
+.btn{display:block;width:100%;font-size:17px;font-weight:700;padding:15px;border:none;border-radius:12px;background:var(--rust);color:#fff;letter-spacing:.5px}
+.btn:disabled{background:#bdb39a;color:#f2ede0}
+.btn.alt{background:#fff;color:var(--moss);border:2px solid var(--moss);margin-top:8px;font-size:15px;padding:12px}
+.fallbacks{display:none;margin-top:10px}
+.fallbacks a,.fallbacks button{display:inline-block;margin:4px 6px 0 0;font-size:14px;padding:9px 12px;border-radius:9px;border:1px solid var(--moss);color:var(--moss);background:#fff;text-decoration:none}
+.note{font-size:11.5px;color:#9a7b2f;text-align:center;margin-top:8px}
+.banner{background:#dff3df;border:1px solid var(--good);color:#235c2c;border-radius:10px;padding:10px;font-size:14px;text-align:center;display:none;margin-bottom:12px}
+.banner.show{display:block}
+</style></head>
+<body>
+<div class="bar"><h1>🌿 Awa Na Kava — Menu Input</h1><div class="meter"><div class="fill" id="fill"></div></div><div class="pct" id="pct">0 of 7 done</div></div>
+<div class="wrap">
+<div class="banner" id="tree">🎄 All green — top to bottom complete! Hit <b>Send to Nick</b> below.</div>
+<div class="intro">Hey Kyle — fill in what you can, <b>it saves automatically</b> as you type, so you can stop and come back anytime. When the bar up top is full and green, tap <b>Send to Nick</b> and pick Messages or Email. Best guesses are totally fine. 🙏</div>
+<div id="form"></div>
+<div class="send">
+<button class="btn" id="sendBtn" disabled>Send to Nick</button>
+<button class="btn alt" id="copyBtn">Copy everything instead</button>
+<div class="fallbacks" id="fb">
+<a id="smsL" href="#">Text it</a><a id="mailL" href="#">Email it</a><button id="copyL">Copy</button>
+</div>
+<div class="note" id="savednote">Saved on this phone automatically. Nothing is sent until you tap a button.</div>
+</div>
+</div>
+<script>
+const CFG=[
+ {sec:"1 · Pour amounts (the cost numbers)",help:"These turn what you pay for ingredients into a real cost per drink. Best estimates are fine.",fields:[
+  {id:"kava_per_kilo",req:1,t:"num",label:"One kilo of kava root makes about how many 16-oz drinks?",unit:"drinks / kilo",ph:"e.g. 30"},
+  {id:"kratom_per_kratea",req:1,t:"num",label:"Each 16-oz Kratea uses about how many grams of kratom?",unit:"grams",ph:"e.g. 12"},
+  {id:"kratea_extract_alt",t:"num",label:"OR — if Kratea is made with Liquid Gold extract: how many drinks per gallon?",unit:"drinks / gal",opt:1},
+  {id:"instant_boost_g",t:"num",label:"Grams of Instant Kava per boost shot?",unit:"grams",opt:1},
+  {id:"syrup_pumps",t:"num",label:"Pumps of syrup in a flavored drink?",unit:"pumps",opt:1},
+ ]},
+ {sec:"2 · House drink recipes (one line each)",help:"Just tell me what each one IS so I can describe it honestly — base (kava/kratom), strength, flavor, vibe. Your recipe stays yours; I only need the gist.",fields:[
+  {id:"desc_zombie",req:1,t:"area",label:"Zombie",ph:"e.g. strongest one — double kratom extract, tropical punch, hits hard"},
+  {id:"desc_voodoo",req:1,t:"area",label:"Voodoo"},
+  {id:"desc_godzilla",req:1,t:"area",label:"Godzilla"},
+  {id:"desc_kmyx",req:1,t:"area",label:"K-MyX"},
+  {id:"desc_choc",t:"area",label:"Chocolate Thunder",opt:1},
+  {id:"desc_kavax",t:"area",label:"Kava-X Drank",opt:1},
+  {id:"desc_sok",t:"area",label:"Sex on Kava — what's the Classic vs After Dark difference?",opt:1},
+ ]},
+ {sec:"3 · Confirm these prices",help:"I set these without your current Clover price. Fix any that are wrong, then check the box.",price:1,fields:[
+  {id:"p_java_kava",label:"Java Kava",v:"7"},{id:"p_matcha_latte",label:"Matcha Latte",v:"7"},
+  {id:"p_golden_milk",label:"Golden Milk Latte",v:"7"},{id:"p_matcha_lemonade",label:"Matcha Lemonade",v:"7"},
+  {id:"p_maca_suma",label:"Maca Suma",v:"7"},{id:"p_montezuma",label:"Montezuma",v:"7"},
+  {id:"p_yerba",label:"Yerba Mate",v:"6"},{id:"p_loose_tea",label:"Loose Leaf Tea",v:"5"},
+  {id:"p_kombucha",label:"Kombucha",v:"6"},{id:"p_blue_lotus",label:"Blue Lotus",v:"8"},
+  {id:"p_krat_soda",label:"Krat Soda",v:"13"},{id:"p_nitro",label:"Nitro Cold Brew",v:"6"},
+ ]},
+];
+const KEY="ank_menu_input_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||"{}");
+const REQ=["kava_per_kilo","kratom_per_kratea","desc_zombie","desc_voodoo","desc_godzilla","desc_kmyx","prices_reviewed"];
+const form=document.getElementById("form");
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+CFG.forEach(s=>{
+ const sec=el("div","sec");sec.appendChild(el("h2",null,s.sec));sec.appendChild(el("div","help",s.help));
+ if(s.price){
+  const card=el("div","item");const grid=el("div","pricegrid");
+  s.fields.forEach(f=>{
+   grid.appendChild(el("div","nm",f.label));
+   const pin=el("div","pin");pin.innerHTML="$";
+   const inp=el("input");inp.type="number";inp.id=f.id;inp.value=(data[f.id]??f.v);inp.step="0.5";
+   inp.oninput=()=>{data[f.id]=inp.value;save();};data[f.id]=data[f.id]??f.v;
+   pin.appendChild(inp);grid.appendChild(pin);
+  });
+  card.appendChild(grid);sec.appendChild(card);
+  const chk=el("div","chk");const cb=el("input");cb.type="checkbox";cb.id="prices_reviewed";cb.checked=!!data.prices_reviewed;
+  cb.onchange=()=>{data.prices_reviewed=cb.checked;save();update();};
+  const lab=el("label",null,"<b>I've reviewed the prices above</b> (changed any that were wrong)");lab.style.margin=0;lab.style.paddingRight=0;
+  chk.appendChild(cb);chk.appendChild(lab);sec.appendChild(chk);
+ } else {
+  s.fields.forEach(f=>{
+   const card=el("div","item");card.id="card_"+f.id;
+   card.appendChild(el("div","tick","✓"));
+   card.appendChild(el("label",null,f.label+(f.opt?' <span class="opt">(optional)</span>':'')));
+   if(f.t==="area"){const ta=el("textarea");ta.id=f.id;ta.value=data[f.id]||"";ta.placeholder=f.ph||"";ta.oninput=()=>{data[f.id]=ta.value;save();update();};card.appendChild(ta);}
+   else{const r=el("div","row");const inp=el("input");inp.type="number";inp.id=f.id;inp.value=data[f.id]||"";inp.placeholder=f.ph||"";inp.oninput=()=>{data[f.id]=inp.value;save();update();};r.appendChild(inp);r.appendChild(el("span","unit",f.unit||""));card.appendChild(r);}
+   sec.appendChild(card);
+  });
+ }
+ form.appendChild(sec);
+});
+function filled(id){const v=data[id];return v!=null&&String(v).trim()!=="";}
+function update(){
+ let done=0;REQ.forEach(id=>{const ok=id==="prices_reviewed"?!!data.prices_reviewed:filled(id);if(ok)done++;
+  const c=document.getElementById("card_"+id);if(c)c.classList.toggle("done",ok);});
+ const pct=Math.round(done/REQ.length*100);
+ document.getElementById("fill").style.width=pct+"%";
+ document.getElementById("pct").textContent=done+" of "+REQ.length+" done";
+ const complete=done===REQ.length;
+ document.getElementById("sendBtn").disabled=!complete;
+ document.getElementById("tree").classList.toggle("show",complete);
+}
+function summary(){
+ const g=id=>data[id]||"—";
+ let t="🌿 AWA NA KAVA — Menu data from Kyle\n\n";
+ t+="POUR AMOUNTS\n";
+ t+="• Kava: "+g("kava_per_kilo")+" drinks per kilo\n";
+ t+="• Kratom: "+g("kratom_per_kratea")+" g per 16oz Kratea\n";
+ if(filled("kratea_extract_alt"))t+="• Kratea extract: "+g("kratea_extract_alt")+" drinks/gal\n";
+ if(filled("instant_boost_g"))t+="• Instant Kava boost: "+g("instant_boost_g")+" g\n";
+ if(filled("syrup_pumps"))t+="• Syrup: "+g("syrup_pumps")+" pumps/drink\n";
+ t+="\nHOUSE DRINKS\n";
+ [["Zombie","desc_zombie"],["Voodoo","desc_voodoo"],["Godzilla","desc_godzilla"],["K-MyX","desc_kmyx"],["Chocolate Thunder","desc_choc"],["Kava-X","desc_kavax"],["Sex on Kava","desc_sok"]].forEach(([n,id])=>{if(filled(id))t+="• "+n+": "+data[id]+"\n";});
+ t+="\nPRICES (confirmed)\n";
+ [["Java Kava","p_java_kava"],["Matcha Latte","p_matcha_latte"],["Golden Milk","p_golden_milk"],["Matcha Lemonade","p_matcha_lemonade"],["Maca Suma","p_maca_suma"],["Montezuma","p_montezuma"],["Yerba Mate","p_yerba"],["Loose Leaf Tea","p_loose_tea"],["Kombucha","p_kombucha"],["Blue Lotus","p_blue_lotus"],["Krat Soda","p_krat_soda"],["Nitro Cold Brew","p_nitro"]].forEach(([n,id])=>{t+="• "+n+": $"+(data[id]||"?")+"\n";});
+ t+="\n---DATA (for Claude)---\n"+JSON.stringify(data);
+ return t;
+}
+document.getElementById("sendBtn").onclick=async()=>{
+ const text=summary();
+ if(navigator.share){try{await navigator.share({title:"Awa Na Kava menu data",text});return;}catch(e){}}
+ showFallbacks(text);
+};
+function showFallbacks(text){
+ const fb=document.getElementById("fb");fb.style.display="block";
+ document.getElementById("smsL").href="sms:?&body="+encodeURIComponent(text);
+ document.getElementById("mailL").href="mailto:?subject="+encodeURIComponent("Awa Na Kava menu data")+"&body="+encodeURIComponent(text);
+ document.getElementById("copyL").onclick=()=>{navigator.clipboard.writeText(text);alert("Copied — paste it into a text to Nick.");};
+}
+document.getElementById("copyBtn").onclick=()=>{const t=summary();navigator.clipboard.writeText(t).then(()=>alert("Copied everything. Paste it into a text or email to Nick.")).catch(()=>showFallbacks(t));};
+update();
+</script></body></html>
