@@ -90,7 +90,8 @@ video::cue{font:600 clamp(18px,2.6vw,44px)/1.3 system-ui,sans-serif;background:r
       <h1 id="heroTitle"></h1>
       <p id="heroSub"></p>
       <div class="btns">
-        <button class="btn primary" id="heroPlay" data-nav>▶ &nbsp;Play</button>
+        <button class="btn primary" id="heroLive" data-nav>⏺ &nbsp;Live Lineup — join tonight’s schedule in progress</button>
+        <button class="btn" id="heroPlay" data-nav>▶ &nbsp;Play</button>
         <button class="btn" id="barMode" data-nav>☾ &nbsp;Bar Mode — films muted + soundtrack, runs all night</button>
       </div>
     </div>
@@ -164,7 +165,36 @@ const bedTracks = [
   A('dussolina-gianini-cielito-lindo-mexicanfolksong-victor-1195','DussolinaGianini,CielitoLindo,Mexicanfolksong,Victor1195.mp3','Cielito Lindo (soprano)','Dusolina Giannini, 1926 · Public domain','2:58'),
   A('HauntedHouse85','1.mp3','Haunted House — sound effects','1985 SFX record · Public domain mark','13:24'),
 ];
+// ---------- Tonight's posted lineup (Instagram, 2026-10-31) — all public domain; silent films muted with soundtrack ----------
+const lineupFilms = {
+  cat:    V('TheCatAndTheCanary1927','The Cat and the Canary (1927).mp4','The Cat and the Canary','1927 · Paul Leni · Silent · Public domain','84 min',{silent:true}),
+  jekyll: V('Dr.JekyllAndMr.Hyde1920DirectorJohnS.Robertson','Dr-Jekyll-and-Mr-Hyde-v2.mp4','Dr. Jekyll and Mr. Hyde','1920 · John Barrymore · Silent · Public domain','83 min',{silent:true}),
+  golem:  V('BillSpragueCollectionTheGOLEM1920','The Golem (1920).mp4','The Golem','1920 · Paul Wegener · Silent · Public domain','85 min',{silent:true}),
+  shrews: V('The_Killer_Shrews','The_Killer_Shrews.mp4','The Killer Shrews','1959 · Public domain','69 min'),
+  devilbat: V('the-devil-bat-1940','The Devil Bat (1940).ia.mp4','The Devil Bat','1940 · Bela Lugosi · Public domain','68 min'),
+  skull:  V('the.-screaming.-skull.-1958','The Screaming Skull (1958)/The.Screaming.Skull.1958.mp4','The Screaming Skull','1958 · Public domain','68 min'),
+  brain:  V('brain_that_wouldnt_die','brain_that_wouldnt_die.mp4',"The Brain That Wouldn't Die",'1962 · Public domain','71 min'),
+  plan9:  V('plan-9-from-outer-space_202009','Plan 9 from Outer Space.mp4','Plan 9 from Outer Space','1957 · Ed Wood · Public domain','79 min'),
+};
+Object.assign(DUR,{TheCatAndTheCanary1927:5054,'Dr.JekyllAndMr.Hyde1920DirectorJohnS.Robertson':4956,BillSpragueCollectionTheGOLEM1920:5093,The_Killer_Shrews:4134,'the-devil-bat-1940':4091,'the.-screaming.-skull.-1958':4087,brain_that_wouldnt_die:4255,'plan-9-from-outer-space_202009':4747});
+Object.values(lineupFilms).forEach(f=>f.d=DUR[f.id]);
+// slot start in minutes after midnight, local time; 24:45 = 12:45 AM next day
+const schedule = [
+  [12*60,      lineupFilms.cat],
+  [13*60+30,   lineupFilms.jekyll],
+  [15*60,      features[5]],   // Phantom of the Opera
+  [17*60,      features[7]],   // Caligari
+  [18*60+20,   lineupFilms.golem],
+  [20*60,      lineupFilms.shrews],
+  [21*60+10,   lineupFilms.devilbat],
+  [22*60+20,   lineupFilms.skull],
+  [23*60+30,   lineupFilms.brain],
+  [24*60+45,   lineupFilms.plan9],
+];
+const lineupItems = schedule.map(([m,f])=>Object.assign({},f,{slot:m,slotLabel:fmtSlot(m)}));
+function fmtSlot(m){ m=m%(24*60); const h=Math.floor(m/60), mm=m%60, ap=h>=12?'PM':'AM'; return ((h%12)||12)+(mm?':'+String(mm).padStart(2,'0'):'')+' '+ap; }
 const rows = [
+  {h:'Tonight’s lineup',s:'as posted · press ⏺ Live Lineup to join in progress',items:lineupItems},
   {h:'Tonight’s features',s:'full-length · silent films work best in Bar Mode',items:features},
   {h:'Shorts & loops',s:'cartoons and musical shorts',items:shorts},
   {h:'Día de Muertos',s:'Nov 1–2',items:ddm},
@@ -181,8 +211,9 @@ function card(it){
   const b=document.createElement('button'); b.className='card'+(it.type==='audio'?' audio':''); b.setAttribute('data-nav','');
   b.innerHTML = it.type==='audio'
     ? `<div class="thumb"><div class="disc"></div><span class="len">${it.len}</span></div><div class="meta"><div class="t">${it.t}</div><div class="s">${it.sub}</div></div>`
-    : `<div class="thumb"><img loading="lazy" src="${it.img}" alt=""><span class="len">${it.len}</span></div><div class="meta"><div class="t">${it.t}</div><div class="s">${it.sub}</div></div>`;
-  b.onclick=()=>{ if(it.type==='audio'){ startBedOnly(bedTracks.indexOf(it)); } else { playQueue([...features,...shorts,...ddm], [...features,...shorts,...ddm].indexOf(it), false); } };
+    : `<div class="thumb"><img loading="lazy" src="${it.img}" alt=""><span class="len">${it.slot!=null?it.slotLabel+' · ':''}${it.len}</span></div><div class="meta"><div class="t">${it.t}</div><div class="s">${it.sub}</div></div>`;
+  if(it.slot!=null){ b.dataset.slot=it.slot; }
+  b.onclick=()=>{ if(it.type==='audio'){ startBedOnly(bedTracks.indexOf(it)); } else if(it.slot!=null){ const all=[...lineupItems,...features,...shorts,...ddm]; playQueue(all, lineupItems.indexOf(it), it.silent); } else { playQueue([...features,...shorts,...ddm], [...features,...shorts,...ddm].indexOf(it), false); } };
   return b;
 }
 const rowsEl=$('#rows');
@@ -193,16 +224,38 @@ rows.forEach(r=>{
   r.items.forEach(it=>rail.appendChild(card(it)));
   sec.appendChild(rail); rowsEl.appendChild(sec);
 });
-const heroItem=features[0];
-$('#heroImg').src=heroItem.img; $('#heroTitle').textContent=heroItem.t; $('#heroSub').textContent=heroItem.sub+' · '+heroItem.len;
-$('#heroPlay').onclick=()=>playQueue([...features,...shorts,...ddm],0,false);
+$('#heroPlay').onclick=()=>{ const idx=Math.max(0,currentSlot()); const all=[...lineupItems,...features,...shorts,...ddm]; playQueue(all, idx, !!lineupItems[idx].silent); };
 $('#barMode').onclick=()=>{ const q=[...shorts, ...features.filter(f=>f.silent), ...shorts, ...features.filter(f=>!f.silent)]; playQueue(q,0,true); };
 
+// ---------- live channel: follow the posted schedule by the clock ----------
+let liveMode=false, liveTimer=null, liveSlotIdx=-1;
+function nowMin(){ const d=new Date(); let m=d.getHours()*60+d.getMinutes()+d.getSeconds()/60; if(m<6*60) m+=24*60; return m; } // 12:00–5:59 AM counts as tonight
+function currentSlot(){ const m=nowMin(); let idx=-1; schedule.forEach(([st],i)=>{ if(st<=m) idx=i; }); return idx; }
+function liveTick(force){
+  if(!liveMode) return;
+  const idx=currentSlot(); const m=nowMin();
+  if(idx<0){ if(force) toast('Lineup starts at 12 PM — playing shorts until then'); if(force||queue[qi]&&queue[qi].slot!=null){ queue=[...shorts]; qi=0; barMode=true; vid.muted=true; loadCurrent(); } return; }
+  const [st,film]=schedule[idx]; const offset=(m-st)*60; const nextSt=schedule[idx+1]?schedule[idx+1][0]:Infinity;
+  if(offset < film.d){ // scheduled film should be on
+    if(idx!==liveSlotIdx||force){ liveSlotIdx=idx; queue=[lineupItems[idx]]; qi=0;
+      vid.muted=!!film.silent; bedOn=!!film.silent; if(bedOn) startBed(); else stopBed(); ccWanted=true;
+      loadCurrent(); const seekTo=offset; const onMeta=()=>{ try{ vid.currentTime=seekTo; }catch(e){} vid.removeEventListener('loadedmetadata',onMeta); };
+      vid.addEventListener('loadedmetadata',onMeta); toast('Live: '+film.t+' · joined at '+fmt(seekTo)); updateBtns(); }
+  } else { // film over, next slot not started: fill with shorts
+    if(liveSlotIdx!==('gap'+idx)){ liveSlotIdx='gap'+idx; queue=[...shorts]; qi=0; vid.muted=true; bedOn=true; startBed(); loadCurrent(); toast('Intermission · next: '+(schedule[idx+1]?schedule[idx+1][1].t+' at '+fmtSlot(nextSt):'end of lineup')); updateBtns(); }
+  }
+}
+function startLive(){ liveMode=true; barMode=false; lastFocus=document.activeElement; player.classList.add('on'); $('#browse').style.display='none'; liveSlotIdx=-1; liveTick(true); showHud(); $('#bBack').focus(); requestFull(); clearInterval(liveTimer); liveTimer=setInterval(()=>liveTick(false),10000); }
+function stopLive(){ liveMode=false; clearInterval(liveTimer); }
+$('#heroLive').onclick=startLive;
+// keep the hero pointed at what is on now / next
+(function heroLive(){ const idx=currentSlot(); const it=idx>=0?lineupItems[idx]:lineupItems[0]; $('#heroKicker').textContent=idx>=0?'On now · '+it.slotLabel:'Tonight from 12 PM'; $('#heroImg').src=it.img; $('#heroTitle').textContent=it.t; $('#heroSub').textContent=it.sub+' · '+it.len;
+  document.querySelectorAll('.card[data-slot]').forEach(c=>c.style.borderColor = (+c.dataset.slot===(schedule[idx]||[])[0])?'var(--acc)':''); setTimeout(heroLive,30000); })();
 // ---------- player ----------
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2200);}
 function showHud(){hud.classList.remove('hide');document.body.classList.remove('cursorhide');clearTimeout(hudTimer);hudTimer=setTimeout(()=>{ if(vid.paused) return; hud.classList.add('hide');document.body.classList.add('cursorhide');},4000);}
 function playQueue(q,i,bar){
-  queue=q; qi=i; barMode=bar; lastFocus=document.activeElement;
+  stopLive(); queue=q; qi=i; barMode=bar; lastFocus=document.activeElement;
   player.classList.add('on'); $('#browse').style.display='none';
   if(bar){ vid.muted=true; bedOn=true; ccWanted=true; startBed(); } else { vid.muted=false; }
   loadCurrent(); showHud(); $('#bBack').focus(); requestFull();
@@ -210,7 +263,7 @@ function playQueue(q,i,bar){
 function clearIframe(){ if(iframeEl){iframeEl.remove();iframeEl=null;} vid.style.display=''; }
 function loadCurrent(){
   const it=queue[qi]; clearIframe(); clearTimeout(embedTimer);
-  $('#pTitle').textContent=it.t; $('#pSub').textContent=it.sub+(barMode?'  ·  Bar Mode':'');
+  $('#pTitle').textContent=it.t; $('#pSub').textContent=it.sub+(liveMode?'  ·  LIVE · '+(it.slotLabel||'intermission'):barMode?'  ·  Bar Mode':'');
   const c=$('#credit'); if(it.credit){c.innerHTML=`<b>Credit</b> ${it.credit}`;c.classList.add('on');} else c.classList.remove('on');
   if(it.embed){ // fallback for formats the browser may not decode
     vid.pause(); vid.removeAttribute('src'); vid.style.display='none';
@@ -241,9 +294,9 @@ vid.addEventListener('ended',next);
 vid.addEventListener('error',()=>{ // fall back to archive.org embed, then skip
   const it=queue[qi]; if(!it.embed){ toast('Switching to Archive player'); it.embed=true; loadCurrent(); } else { toast('Could not play — skipping'); setTimeout(next,1500); }
 });
-function next(){ qi=(qi+1)%queue.length; loadCurrent(); toast('Next: '+queue[qi].t); }
+function next(){ if(liveMode){ liveSlotIdx=-1; liveTick(false); return; } qi=(qi+1)%queue.length; loadCurrent(); toast('Next: '+queue[qi].t); }
 function back(){
-  clearTimeout(embedTimer); vid.pause(); vid.removeAttribute('src'); vid.load(); clearIframe();
+  stopLive(); clearTimeout(embedTimer); vid.pause(); vid.removeAttribute('src'); vid.load(); clearIframe();
   if(!barMode && !$('#bBed').classList.contains('on')) stopBed();
   player.classList.remove('on'); $('#browse').style.display=''; (lastFocus||$('#heroPlay')).focus();
 }
@@ -331,7 +384,7 @@ player.addEventListener('click',e=>{ if(e.target===vid) $('#bPause').click(); })
 // clock
 setInterval(()=>{ $('#clock').textContent=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); },1000);
 // initial focus for remotes
-window.addEventListener('load',()=>$('#heroPlay').focus());
+window.addEventListener('load',()=>$('#heroLive').focus());
 </script>
 </body>
 </html>
