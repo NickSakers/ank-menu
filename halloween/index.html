@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0a0e">
+<title>Awa Na Kava — Halloween Screen</title>
+<style>
+:root{--bg:#0b0a0e;--panel:#15121b;--ink:#f4ecdf;--mute:#a394ad;--acc:#ff8a1f;--acc2:#9a6cff;--focus:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,Segoe UI,Roboto,Helvetica,sans-serif;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus{outline:none}
+/* ---------- browse ---------- */
+#browse{padding-bottom:6vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:2.2vh 4vw 0}
+header .brand{font-weight:800;letter-spacing:.08em;font-size:clamp(16px,1.6vw,24px);color:var(--acc)}
+header .brand span{color:var(--mute);font-weight:500;letter-spacing:0;margin-left:.6em}
+header .clock{color:var(--mute);font-size:clamp(14px,1.3vw,20px)}
+.hero{position:relative;height:52vh;margin:2vh 4vw 0;border-radius:18px;overflow:hidden;background:#000}
+.hero img{width:100%;height:100%;object-fit:cover;opacity:.55;filter:saturate(.8)}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,10,14,.95) 0%,rgba(11,10,14,.6) 45%,rgba(11,10,14,0) 100%)}
+.hero .copy{position:absolute;left:4vw;bottom:5vh;max-width:52%}
+.hero .kicker{color:var(--acc);font-weight:700;letter-spacing:.12em;font-size:clamp(12px,1vw,16px);text-transform:uppercase}
+.hero h1{margin:.3em 0 .4em;font-size:clamp(28px,4vw,64px);line-height:1.02}
+.hero p{margin:0 0 1.2em;color:var(--mute);font-size:clamp(14px,1.3vw,22px)}
+.btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.5em;padding:.7em 1.4em;border-radius:12px;font-weight:700;font-size:clamp(15px,1.4vw,24px);background:#ffffff14;border:2px solid transparent;transition:transform .12s}
+.btn.primary{background:var(--acc);color:#1a1008}
+.btn:focus,.btn:hover{border-color:var(--focus);transform:scale(1.04)}
+.row{margin-top:3.6vh}
+.row h2{margin:0 4vw 1.2vh;font-size:clamp(16px,1.6vw,26px);font-weight:700}
+.row h2 small{color:var(--mute);font-weight:500;margin-left:.8em;font-size:.75em}
+.rail{display:flex;gap:1.4vw;padding:1vh 4vw 1.6vh;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.card{flex:0 0 auto;width:clamp(180px,17vw,300px);text-align:left;border-radius:14px;overflow:hidden;background:var(--panel);border:3px solid transparent;transition:transform .12s,border-color .12s}
+.card:focus,.card:hover{border-color:var(--focus);transform:scale(1.06);z-index:2;position:relative}
+.card .thumb{position:relative;aspect-ratio:16/9;background:#000}
+.card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.card.audio .thumb{display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,#3b2a5c,#15121b)}
+.card.audio .thumb .disc{width:46%;aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,#111 0 2px,#2a2a2a 2px 4px);border:4px solid #444;position:relative}
+.card.audio .thumb .disc::after{content:"";position:absolute;inset:38%;border-radius:50%;background:var(--acc2)}
+.card .len{position:absolute;right:8px;bottom:8px;background:#000c;padding:2px 8px;border-radius:6px;font-size:.75em}
+.card .meta{padding:10px 12px 12px}
+.card .t{font-weight:700;font-size:clamp(13px,1.1vw,18px);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .s{color:var(--mute);font-size:.8em;margin-top:4px}
+footer{color:var(--mute);font-size:.75em;padding:3vh 4vw 0}
+/* ---------- player ---------- */
+#player{position:fixed;inset:0;background:#000;display:none;z-index:10}
+#player.on{display:block}
+#player video{width:100%;height:100%;object-fit:contain;background:#000}
+#player iframe{width:100%;height:100%;border:0;background:#000}
+.hud{position:absolute;left:0;right:0;bottom:0;padding:3vh 4vw 4vh;background:linear-gradient(0deg,rgba(0,0,0,.85),rgba(0,0,0,0));transition:opacity .4s}
+.hud.hide{opacity:0;pointer-events:none}
+.hud .title{font-size:clamp(20px,2.4vw,40px);font-weight:800}
+.hud .sub{color:var(--mute);margin:.2em 0 1.2em;font-size:clamp(13px,1.2vw,20px)}
+.hud .ctrls{display:flex;gap:12px;flex-wrap:wrap}
+.hud .btn{font-size:clamp(14px,1.2vw,20px);padding:.55em 1.1em}
+.hud .btn.on{background:var(--acc);color:#1a1008}
+.credit{position:absolute;top:2.5vh;right:3vw;max-width:46vw;background:#000a;border-left:4px solid var(--acc);padding:.6em 1em;border-radius:8px;font-size:clamp(12px,1.1vw,18px);display:none}
+.credit.on{display:block}
+.credit b{color:var(--acc)}
+.nowbed{position:absolute;top:2.5vh;left:3vw;background:#000a;padding:.5em 1em;border-radius:8px;font-size:clamp(12px,1.1vw,18px);display:none;color:var(--mute)}
+.nowbed.on{display:block}
+.nowbed b{color:var(--ink)}
+.toast{position:fixed;left:50%;top:6vh;transform:translateX(-50%);background:#000d;border:1px solid #444;padding:.6em 1.2em;border-radius:10px;font-size:clamp(13px,1.2vw,20px);z-index:20;display:none}
+.toast.on{display:block}
+.cursorhide,.cursorhide *{cursor:none}
+@media (max-width:700px){.hero{height:40vh}.hero .copy{max-width:88%}.card{width:44vw}}
+</style>
+</head>
+<body>
+<div id="browse">
+  <header>
+    <div class="brand">AWA NA KAVA <span>Halloween · Día de Muertos</span></div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <section class="hero" id="hero">
+    <img id="heroImg" alt="">
+    <div class="shade"></div>
+    <div class="copy">
+      <div class="kicker" id="heroKicker">Tonight's feature</div>
+      <h1 id="heroTitle"></h1>
+      <p id="heroSub"></p>
+      <div class="btns">
+        <button class="btn primary" id="heroPlay" data-nav>▶ &nbsp;Play</button>
+        <button class="btn" id="barMode" data-nav>☾ &nbsp;Bar Mode — films muted + soundtrack, runs all night</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="rows"></div>
+
+  <footer>Every title streams from the Internet Archive and is public domain or Creative Commons (credits shown on screen where required). Remote: arrows move · OK plays · Back returns. Keyboard: arrows / Enter / Esc · M mute · S soundtrack · N next · F fullscreen.</footer>
+</div>
+
+<div id="player">
+  <video id="vid" playsinline preload="auto"></video>
+  <div class="nowbed" id="nowbed"></div>
+  <div class="credit" id="credit"></div>
+  <div class="hud" id="hud">
+    <div class="title" id="pTitle"></div>
+    <div class="sub" id="pSub"></div>
+    <div class="ctrls">
+      <button class="btn" id="bPause" data-pnav>⏯ Pause</button>
+      <button class="btn" id="bMute" data-pnav>🔇 Mute film</button>
+      <button class="btn" id="bBed" data-pnav>♫ Soundtrack</button>
+      <button class="btn" id="bNext" data-pnav>⏭ Next</button>
+      <button class="btn" id="bFull" data-pnav>⛶ Fullscreen</button>
+      <button class="btn" id="bBack" data-pnav>← Back</button>
+    </div>
+  </div>
+</div>
+<audio id="bed" preload="none"></audio>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- catalog (verified 2026-10-16; direct-stream filenames read from archive.org metadata 2026-10-31) ----------
+const DL = (id,f)=>`https://archive.org/download/${id}/${encodeURIComponent(f)}`;
+const IMG = id=>`https://archive.org/services/img/${id}`;
+const DUR={'house_on_haunted_hill': 4483, 'CarnivalofSouls': 4980, 'NightOfTheLivingDead1968-Restored': 5750, 'Dementia13withSpanishSubtitles': 4490, 'TheBat1926WithSoundtrack': 5134, 'ThePhantomOfTheOpera_364': 6391, 'Nosferatu_201902': 5554, 'the-cabinet-of-dr.-caligari': 4523, 'Czarownica1922': 6299, 'the-skeleton-dance-1929': 331, 'SwingYouSinners': 496, 'FiestaSoundi': 168, 'DayOfTheDeadAltarProjectFor2008OfrendaShowInWashingtonDc': 390, 'ArtOutletsOfrenda2008DayOfTheDeadInWashingtonDc': 535, 'DayoftheDead': 329, 'good_friday': 920};
+const V = (id,f,t,sub,len,o={})=>({id,src:DL(id,f),type:'video',t,sub,len,img:IMG(id),d:DUR[id]||600,...o});
+const A = (id,f,t,sub,len,o={})=>({id,src:DL(id,f),type:'audio',t,sub,len,...o});
+
+const features = [
+  V('house_on_haunted_hill','house_on_haunted_hill.mp4','House on Haunted Hill','1959 · Vincent Price · Public domain','75 min'),
+  V('CarnivalofSouls','CarnivalOfSouls.mp4','Carnival of Souls','1962 · Herk Harvey · Public domain','83 min'),
+  V('NightOfTheLivingDead1968-Restored','Notld1968Restoration-desktop.mp4','Night of the Living Dead','1968 · George A. Romero · Public domain','96 min'),
+  V('Dementia13withSpanishSubtitles','Dementia13_512kb_sub.mp4','Dementia 13','1963 · Coppola · English w/ Spanish subtitles · Public domain','75 min'),
+  V('TheBat1926WithSoundtrack','TheBat1926WithSoundtrack_512kb.mp4','The Bat','1926 · Roland West · CC0','86 min',{silent:true}),
+  V('ThePhantomOfTheOpera_364','ThePhantomOfTheOperaPresentedByMoviePowder_512kb.mp4','The Phantom of the Opera','1925 · Lon Chaney · Public domain','107 min',{silent:true}),
+  V('Nosferatu_201902','Nosferatu _ 1922, silent, full film, high quality.mp4','Nosferatu','1922 · F. W. Murnau · Silent · Public domain','93 min',{silent:true}),
+  V('the-cabinet-of-dr.-caligari','The Cabinet of Dr. Caligari.ia.mp4','The Cabinet of Dr. Caligari','1920 · Robert Wiene · Silent · Public domain','75 min',{silent:true}),
+  V('Czarownica1922','czarownica 1922.mp4','Häxan','1922 · Benjamin Christensen · Silent · Public domain','105 min',{silent:true}),
+];
+const shorts = [
+  V('the-skeleton-dance-1929','The Skeleton Dance (1929).mp4','The Skeleton Dance','1929 · Silly Symphony · Public domain','6 min'),
+  V('SwingYouSinners','Swing You Sinners.mp4','Swing You Sinners','1930 · Fleischer Studios · Public domain','8 min'),
+  V('FiestaSoundi','FiestaSoundi.mp4','Fiesta (Soundie)','1940s musical short · Public domain','3 min'),
+];
+const ddm = [
+  V('DayOfTheDeadAltarProjectFor2008OfrendaShowInWashingtonDc','KimsDayOfTheDeadProject.m4v','Day of the Dead Altar','2008 · Kimberly Keyes Stark · CC BY 3.0','7 min',{credit:'“Day of the Dead Altar Project” by Kimberly Keyes Stark · CC BY 3.0 · archive.org'}),
+  V('ArtOutletsOfrenda2008DayOfTheDeadInWashingtonDc','OfrendaDayOfTheDead-november12008.m4v','Ofrenda 2008','Art Outlet, Washington DC · Kimberly Keyes Stark · CC BY 3.0','9 min',{credit:'“Art Outlet’s Ofrenda 2008” by Kimberly Keyes Stark · CC BY 3.0 · archive.org'}),
+  V('DayoftheDead','Day_of_the_DeadQT_8MPEG4_300Kbps_Streaming.ogv','Day of the Dead — Mission District','2006 · brucealan · CC BY','5 min',{credit:'“Day of the Dead” by brucealan · CC BY · archive.org',embed:true}),
+  V('good_friday','good_friday.mp4','Good Friday Through Cuernavaca','Prelinger Archives · Public domain','15 min'),
+];
+const bedTracks = [
+  A('loc-jukebox-65313-danse-macabre','jukebox-65313_danse-macabre.mp3','Danse macabre','Saint-Saëns · Maier & Pattison, 1923 · Public domain','3:43'),
+  A('loc-jukebox-62411-funeral-march-of-a-marionette','jukebox-62411_funeral-march-of-a-marionette.mp3','Funeral March of a Marionette','Gounod · Victor Symphony, 1922 · Public domain','4:15'),
+  A('loc-jukebox-23117-la-llorona','jukebox-23117_la-llorona.mp3','La llorona','Carmen García Cornejo, 1917 · Public domain','2:56'),
+  A('loc-jukebox-32729-cielito-lindo','jukebox-32729_cielito-lindo.mp3','Cielito lindo','Trío González, 1919 · Public domain','3:09'),
+  A('dussolina-gianini-cielito-lindo-mexicanfolksong-victor-1195','DussolinaGianini,CielitoLindo,Mexicanfolksong,Victor1195.mp3','Cielito Lindo (soprano)','Dusolina Giannini, 1926 · Public domain','2:58'),
+  A('HauntedHouse85','1.mp3','Haunted House — sound effects','1985 SFX record · Public domain mark','13:24'),
+];
+const rows = [
+  {h:'Tonight’s features',s:'full-length · silent films work best in Bar Mode',items:features},
+  {h:'Shorts & loops',s:'cartoons and musical shorts',items:shorts},
+  {h:'Día de Muertos',s:'Nov 1–2',items:ddm},
+  {h:'Soundtrack',s:'public-domain recordings · also runs under muted films',items:bedTracks},
+];
+
+// ---------- state ----------
+const $ = s=>document.querySelector(s);
+const vid=$('#vid'), bed=$('#bed'), player=$('#player'), hud=$('#hud');
+let embedTimer=null, queue=[], qi=0, barMode=false, bedOn=false, bedIdx=0, hudTimer, lastFocus=null, iframeEl=null;
+
+// ---------- build browse ----------
+function card(it){
+  const b=document.createElement('button'); b.className='card'+(it.type==='audio'?' audio':''); b.setAttribute('data-nav','');
+  b.innerHTML = it.type==='audio'
+    ? `<div class="thumb"><div class="disc"></div><span class="len">${it.len}</span></div><div class="meta"><div class="t">${it.t}</div><div class="s">${it.sub}</div></div>`
+    : `<div class="thumb"><img loading="lazy" src="${it.img}" alt=""><span class="len">${it.len}</span></div><div class="meta"><div class="t">${it.t}</div><div class="s">${it.sub}</div></div>`;
+  b.onclick=()=>{ if(it.type==='audio'){ startBedOnly(bedTracks.indexOf(it)); } else { playQueue([...features,...shorts,...ddm], [...features,...shorts,...ddm].indexOf(it), false); } };
+  return b;
+}
+const rowsEl=$('#rows');
+rows.forEach(r=>{
+  const sec=document.createElement('section'); sec.className='row';
+  sec.innerHTML=`<h2>${r.h}<small>${r.s}</small></h2>`;
+  const rail=document.createElement('div'); rail.className='rail';
+  r.items.forEach(it=>rail.appendChild(card(it)));
+  sec.appendChild(rail); rowsEl.appendChild(sec);
+});
+const heroItem=features[0];
+$('#heroImg').src=heroItem.img; $('#heroTitle').textContent=heroItem.t; $('#heroSub').textContent=heroItem.sub+' · '+heroItem.len;
+$('#heroPlay').onclick=()=>playQueue([...features,...shorts,...ddm],0,false);
+$('#barMode').onclick=()=>{ const q=[...shorts, ...features.filter(f=>f.silent), ...shorts, ...features.filter(f=>!f.silent)]; playQueue(q,0,true); };
+
+// ---------- player ----------
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2200);}
+function showHud(){hud.classList.remove('hide');document.body.classList.remove('cursorhide');clearTimeout(hudTimer);hudTimer=setTimeout(()=>{hud.classList.add('hide');document.body.classList.add('cursorhide');},4000);}
+function playQueue(q,i,bar){
+  queue=q; qi=i; barMode=bar; lastFocus=document.activeElement;
+  player.classList.add('on'); $('#browse').style.display='none';
+  if(bar){ vid.muted=true; bedOn=true; startBed(); } else { vid.muted=false; }
+  loadCurrent(); showHud(); $('#bBack').focus(); requestFull();
+}
+function clearIframe(){ if(iframeEl){iframeEl.remove();iframeEl=null;} vid.style.display=''; }
+function loadCurrent(){
+  const it=queue[qi]; clearIframe(); clearTimeout(embedTimer);
+  $('#pTitle').textContent=it.t; $('#pSub').textContent=it.sub+(barMode?'  ·  Bar Mode':'');
+  const c=$('#credit'); if(it.credit){c.innerHTML=`<b>Credit</b> ${it.credit}`;c.classList.add('on');} else c.classList.remove('on');
+  if(it.embed){ // fallback for formats the browser may not decode
+    vid.pause(); vid.removeAttribute('src'); vid.style.display='none';
+    iframeEl=document.createElement('iframe'); iframeEl.allow='autoplay; fullscreen'; iframeEl.src=`https://archive.org/embed/${it.id}?autoplay=1`;
+    player.insertBefore(iframeEl, $('#nowbed'));
+    clearTimeout(embedTimer); embedTimer=setTimeout(next,(it.d+25)*1000); // embed gives no 'ended' event
+    return;
+  }
+  vid.src=it.src; vid.play().catch(()=>{});
+  updateBtns();
+}
+vid.addEventListener('ended',next);
+vid.addEventListener('error',()=>{ // fall back to archive.org embed, then skip
+  const it=queue[qi]; if(!it.embed){ toast('Switching to Archive player'); it.embed=true; loadCurrent(); } else { toast('Could not play — skipping'); setTimeout(next,1500); }
+});
+function next(){ qi=(qi+1)%queue.length; loadCurrent(); toast('Next: '+queue[qi].t); }
+function back(){
+  clearTimeout(embedTimer); vid.pause(); vid.removeAttribute('src'); vid.load(); clearIframe();
+  if(!barMode && !$('#bBed').classList.contains('on')) stopBed();
+  player.classList.remove('on'); $('#browse').style.display=''; (lastFocus||$('#heroPlay')).focus();
+}
+function requestFull(){ const el=document.documentElement; (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el).catch?.(()=>{}); }
+function updateBtns(){
+  $('#bMute').textContent = vid.muted?'🔊 Unmute film':'🔇 Mute film'; $('#bMute').classList.toggle('on',vid.muted);
+  $('#bBed').textContent = bedOn?'♫ Soundtrack on':'♫ Soundtrack'; $('#bBed').classList.toggle('on',bedOn);
+  $('#bPause').textContent = vid.paused?'▶ Play':'⏸ Pause';
+}
+$('#bPause').onclick=()=>{ if(vid.paused) vid.play(); else vid.pause(); updateBtns(); };
+$('#bMute').onclick=()=>{ vid.muted=!vid.muted; updateBtns(); };
+$('#bBed').onclick=()=>{ bedOn=!bedOn; if(bedOn) startBed(); else stopBed(); updateBtns(); };
+$('#bNext').onclick=next; $('#bFull').onclick=requestFull; $('#bBack').onclick=back;
+vid.addEventListener('play',updateBtns); vid.addEventListener('pause',updateBtns);
+
+// ---------- soundtrack bed ----------
+function startBed(){ bedOn=true; const t=bedTracks[bedIdx]; bed.src=t.src; bed.volume=0.9; bed.play().catch(()=>{}); const n=$('#nowbed'); n.innerHTML=`♫ <b>${t.t}</b> — ${t.sub}`; n.classList.add('on'); }
+function stopBed(){ bedOn=false; bed.pause(); $('#nowbed').classList.remove('on'); }
+bed.addEventListener('ended',()=>{ bedIdx=(bedIdx+1)%bedTracks.length; if(bedOn) startBed(); });
+bed.addEventListener('error',()=>{ bedIdx=(bedIdx+1)%bedTracks.length; if(bedOn) startBed(); });
+function startBedOnly(i){ bedIdx=i; startBed(); $('#bBed').classList.add('on'); toast('Playing: '+bedTracks[i].t); }
+
+// ---------- remote / keyboard navigation ----------
+function focusables(){ return [...document.querySelectorAll(player.classList.contains('on')?'[data-pnav]':'[data-nav]')].filter(e=>e.offsetParent!==null); }
+function rect(e){return e.getBoundingClientRect()}
+function moveFocus(dir){
+  const cur=document.activeElement, all=focusables(); if(!all.includes(cur)){ all[0]?.focus(); return; }
+  const r=rect(cur), cx=r.left+r.width/2, cy=r.top+r.height/2;
+  let best=null,bd=1e9;
+  for(const e of all){ if(e===cur) continue; const q=rect(e), x=q.left+q.width/2, y=q.top+q.height/2, dx=x-cx, dy=y-cy;
+    let ok=false, d=0;
+    if(dir==='right'&&dx>8&&Math.abs(dy)<r.height) {ok=true;d=dx+Math.abs(dy)*3}
+    if(dir==='left'&&dx<-8&&Math.abs(dy)<r.height) {ok=true;d=-dx+Math.abs(dy)*3}
+    if(dir==='down'&&dy>8) {ok=true;d=dy+Math.abs(dx)*0.6}
+    if(dir==='up'&&dy<-8) {ok=true;d=-dy+Math.abs(dx)*0.6}
+    if(ok&&d<bd){bd=d;best=e} }
+  if(best){ best.focus(); best.scrollIntoView({block:'center',inline:'center',behavior:'smooth'}); }
+}
+document.addEventListener('keydown',e=>{
+  const k=e.key; showHud();
+  const inPlayer=player.classList.contains('on');
+  if(k==='ArrowRight'){moveFocus('right');e.preventDefault()}
+  else if(k==='ArrowLeft'){moveFocus('left');e.preventDefault()}
+  else if(k==='ArrowDown'){moveFocus('down');e.preventDefault()}
+  else if(k==='ArrowUp'){moveFocus('up');e.preventDefault()}
+  else if(k==='Escape'||k==='Backspace'||k==='GoBack'||k==='BrowserBack'){ if(inPlayer){back();e.preventDefault();} }
+  else if(inPlayer){
+    if(k===' '){ $('#bPause').click(); e.preventDefault(); }
+    else if(k==='m'||k==='M'){ $('#bMute').click(); }
+    else if(k==='s'||k==='S'){ $('#bBed').click(); }
+    else if(k==='n'||k==='N'||k==='MediaTrackNext'){ next(); }
+    else if(k==='f'||k==='F'){ requestFull(); }
+    else if(k==='MediaPlayPause'){ $('#bPause').click(); }
+  }
+});
+document.addEventListener('mousemove',showHud); document.addEventListener('touchstart',showHud,{passive:true});
+player.addEventListener('click',e=>{ if(e.target===vid) $('#bPause').click(); });
+// clock
+setInterval(()=>{ $('#clock').textContent=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); },1000);
+// initial focus for remotes
+window.addEventListener('load',()=>$('#heroPlay').focus());
+</script>
+</body>
+</html>
